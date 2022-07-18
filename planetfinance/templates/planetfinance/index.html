@@ -1,0 +1,143 @@
+{% extends "planetfinance/layout.html" %}
+
+{% block body %}
+
+<div id="container" class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">Net Worth</strong>
+    <canvas id="networth_chart" data-url="{% url 'networth_chart' %}"></canvas>
+</div>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script>
+    $(function () {
+        var $networthChart = $("#networth_chart");
+        $.ajax({
+            url: $networthChart.data("url"),
+            success: function (data) {
+
+                var ctx = $networthChart[0].getContext("2d");
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+
+                        datasets: [{
+                            label: 'Net Worth',
+                            backgroundColor: 'rgb(75, 192, 192)',
+                            data: data.data,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        legend: { display: false },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    callback: function (value, index, values) {
+                                        if (parseInt(value) >= 1000) {
+                                            return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "k").slice(0, -3);
+                                        } else {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }]
+                        }
+  
+                    }
+                });
+
+            }
+        });
+
+    });
+
+</script>
+
+<div class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">Add Account</strong>
+    <form action="{% url 'account' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <div class="col">
+                <div class="row m-1">
+                    <div class="input-group m-1">
+                        <input autofocus class="form-control m-1" type="text" name="name" placeholder="Account Name">
+                        <input class="btn btn-secondary m-1 " type="submit" value="Create">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">Add Transaction</strong>
+    <form action="{% url 'transaction' %}" method="post" id="transaction">
+        {% csrf_token %}
+        <div class="form-group">
+            <div class="col">
+                <div class="row m-1">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input autofocus class="form-control" type="number" step="0.01" min="0" name="amount" placeholder="0.00">
+                    </div>
+                    <select class="form-select m-1" aria-label=".form-select-sm example" id="tran_type" name="tran_type" form="transaction" placeholder="Account">
+                        <option name="trans_type" value="Income">Income</option>
+                        <option name="trans_type" value="Expense">Expense</option>
+                    </select>
+                    <select class="form-select m-1" aria-label=".form-select-sm example" id="account" name="account" form="transaction">
+                        <option value="" disabled selected>Account</option>
+                        {% for account in get_accounts %}
+                        <option name="account_id" value="{{ account.id }}">{{ account.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input class="form-select m-1" id="date" name="date" form="transaction" type="date">
+
+                    <input class="btn btn-secondary m-1" type="submit" value="Create">
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+<div class="container-lg my-4">
+    {% for transaction in get_transactions %}
+    {% if transaction.tran_type == "Income" %}
+    <ul class="nav  border m-2 rounded-pill nav-fill nav-justified">
+        <li class="nav-item ">
+            <a class="nav-link disabled">{{ transaction.account.name }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link">+${{transaction.amount }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link disabled justify-content-end">{{ transaction.date }}</a>
+        </li>
+    </ul>
+    {% endif %}
+
+    {% if transaction.tran_type == "Expense" %}
+    <ul class="nav  border m-2 rounded-pill nav-fill">
+        <li class="nav-item ">
+            <a class="nav-link disabled">{{ transaction.account.name }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link">-${{ transaction.amount }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link disabled justify-content-end">{{ transaction.date }}</a>
+        </li>
+    </ul>
+    {% endif %}
+    {% endfor %}
+</div>
+
+
+
+
+    {% endblock %}

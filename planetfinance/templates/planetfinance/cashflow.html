@@ -1,0 +1,83 @@
+{% extends "planetfinance/layout.html" %}
+
+{% block body %}
+
+
+<div id="container" class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">This Month</strong>
+    <div class="card my-3">
+        <div class="card-body text-bold">
+            {{ current_month }} Cash Flow is {{ total_cashflow }}
+        </div>
+    </div>
+    {% if monthly_budget is not None %}
+    {% if monthly_budget.number < expenses_total %}
+    <div class="card my-3">
+        <div class="card-body text-bold">
+            Oh no! It looks like you are ${{ abs_budget_diff }} over your budget!
+        </div>
+    </div>
+    {% endif %}
+    {% if monthly_budget.number >= expenses_total %}
+    <div class="card my-3">
+        <div class="card-body text-bold">
+            Great job! It looks like you are ${{ abs_budget_diff }} under your budget!
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+    <canvas id="cashflow_chart" data-url="{% url 'cashflow_chart' %}"></canvas>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script>
+    $(function () {
+        var $cashflowChart = $("#cashflow_chart");
+        $.ajax({
+            url: $cashflowChart.data("url"),
+            success: function (data) {
+
+                var ctx = $cashflowChart[0].getContext("2d");
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.labels,
+
+                        datasets: [{
+                            label: 'Cash Flow',
+                            backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+                            borderColor: ['rgb(255, 99, 132)', 'rgb(75, 192, 192)'],
+                            borderWidth: 1,
+                            data: data.data,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        legend: { display: false },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    callback: function (value, index, values) {
+                                        if (parseInt(value) >= 1000) {
+                                            return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "k").slice(0, -3);
+                                        } else {
+                                            return '$' + value;
+                                        }
+                                    }
+                                }
+                            }]
+                        }
+
+                    }
+                });
+
+            }
+        });
+
+    });
+</script>
+
+    {% endblock %}

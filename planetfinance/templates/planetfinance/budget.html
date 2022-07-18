@@ -1,0 +1,68 @@
+{% extends "planetfinance/layout.html" %}
+
+{% block body %}
+
+<div id="container" class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">This Month</strong>
+    {{ budget_percent }}
+    {% if budget_percent is not None %}
+    <div class="card my-3">
+        <div class="card-body text-bold">
+            You have %{{ budget_percent }} of your budget left!
+        </div>
+    </div>
+    {% endif %}
+    <canvas id="budget_chart" data-url="{% url 'budget_chart' %}"></canvas>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script>
+    $(function () {
+        var $budgetChart = $("#budget_chart");
+        $.ajax({
+            url: $budgetChart.data("url"),
+            success: function (data) {
+
+                var ctx = $budgetChart[0].getContext("2d");
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            label: 'Cash Flow',
+                            data: data.data,
+                        }]
+                    },
+                    
+                });
+
+            }
+        });
+
+    });
+</script>
+
+<div id="container" class="container-lg my-4">
+    <strong class="d-block h6 m-2 pb-2 border-bottom">Add Budget</strong>
+    <form action="{% url 'createbudget' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+
+            <div class="row m-1">
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input autofocus class="form-control" type="number" min="0" name="number" placeholder="0">
+                    <a class="input-group-text">Month: </a>
+                    <input autofocus class="form-control" type="number" min="1" max="12" name="month" placeholder="1">
+                    <a class="input-group-text">Year: </a>
+                    <input autofocus class="form-control" type="number" min="1" name="year" placeholder="2022">
+                </div>
+                <input class="btn btn-secondary my-2" type="submit" value="Create Budget">
+            </div>
+        </div>
+    </form>
+</div>
+
+    
+    {% endblock %}

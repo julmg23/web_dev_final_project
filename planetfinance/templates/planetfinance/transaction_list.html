@@ -1,0 +1,40 @@
+{% extends "planetfinance/layout.html" %}
+
+{% block body %}
+
+<strong class="d-block h6 m-2 pb-2 border-bottom">All Transactions</strong>
+<div class="container-lg my-4">
+    {% for transaction in get_transactions %}
+    {% if transaction.tran_type == "Income" %}
+    <ul class="nav  border m-2 rounded-pill nav-fill nav-justified">
+        <li class="nav-item ">
+            <a class="nav-link disabled">{{ transaction.account.name }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link">+${{transaction.amount }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link disabled justify-content-end">{{ transaction.date }}</a>
+        </li>
+    </ul>
+    {% endif %}
+
+    {% if transaction.tran_type == "Expense" %}
+    <ul class="nav  border m-2 rounded-pill nav-fill">
+        <li class="nav-item ">
+            <a class="nav-link disabled">{{ transaction.account.name }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link">-${{ transaction.amount }} </a>
+        </li>
+        <li class="nav-item ">
+            <a class="nav-link disabled justify-content-end">{{ transaction.date }}</a>
+        </li>
+    </ul>
+    {% endif %}
+    {% endfor %}
+</div>
+
+
+
+    {% endblock %}
